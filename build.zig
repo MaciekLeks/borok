@@ -87,17 +87,6 @@ pub fn build(b: *Build) !void {
     kernel_elf.step.dependOn(last_step_ptr);
 
     b.installArtifact(kernel_elf);
-    //b.default_step.dependOn(&install_elf.step);
-    //b.getInstallStep().dependOn(&install_elf.step);
-
-    //const obj_copy = b.addSystemCommand(&[_][]const u8{ "objcopy", "-O", "binary", "-S", "zig-out/bin/kernel.elf", "zig-out/bin/kernel.bin" });
-    // const obj_copy = b.addSystemCommand(&[_][]const u8{ "objcopy"});
-    // obj_copy.addArgs(&[_][]const u8{"-O", "binary", "-S"});
-    // obj_copy.addArtifactArg(kernel_elf);
-    // const prefix = b.install_prefix;
-    // _ = obj_copy.addPrefixedOutputFileArg(prefix, "kernel.bin");
-    // obj_copy.step.name = "elf to binary file";
-    // obj_copy.step.dependOn(&kernel_elf.step);
 
     // src: https://stackoverflow.com/questions/77074657/how-to-objcopy-a-bin-file-as-part-of-a-zig-build-script
     const bin = b.addObjCopy(kernel_elf.getEmittedBin(), .{
@@ -105,21 +94,8 @@ pub fn build(b: *Build) !void {
     });
     bin.step.dependOn(&kernel_elf.step);
     const copy_bin = b.addInstallBinFile(bin.getOutput(), "kernel.bin");
-    // const bin = b.addObjCopy(kernel_elf.getEmittedBin(), .{
-    //     .format = .bin,
-    // });
-    // bin.step.dependOn(&kernel_elf.step);
-
-    // Copy the bin to the output directory
-    //const ins_bin = b.addInstallBinFile(bin.getOutput(), "kernel.bin");
-    //b.default_step.dependOn(&ins_bin.step);
-
-    // const bootBin = b.addSystemCommand(&[_][]const u8{ "dd", "if=zig-out/bin/boot.bin", "of=zig-out/bin/os.bin" });
-    // bootBin.step.name = "dd boot.bin";
-    // bootBin.step.dependOn(&copy_bin.step);
 
     const os_bin = b.addSystemCommand(&[_][]const u8{"dd"});
-    ///////////////os_bin.addPrefixedFileArg("if=", boot_bin_path2);
     os_bin.addArg("if=zig-out/bin/boot.bin");
     os_bin.addArg("of=zig-out/bin/os.bin");
     os_bin.step.name = "dd boot.bin";
@@ -134,7 +110,6 @@ pub fn build(b: *Build) !void {
 
     const kernelBin = b.addSystemCommand(&[_][]const u8{ "dd", "if=zig-out/bin/kernel.bin", "of=zig-out/bin/os.bin", "seek=2", "bs=512", "conv=sync" });
     kernelBin.step.name = "dd kernel.bin";
-    //kernelBin.step.dependOn(&bootBin.step);
     kernelBin.step.dependOn(&os_bin2.step);
 
     const padding = b.addSystemCommand(&[_][]const u8{ "dd", "if=/dev/zero", "of=zig-out/bin/os.bin", "bs=512", "count=5000", "conv=notrunc", "oflag=append" });
@@ -142,12 +117,9 @@ pub fn build(b: *Build) !void {
     padding.step.dependOn(&kernelBin.step);
 
     var ddStep = b.step("dd", "Run dd commands");
-    //ddStep.dependOn(&bootBin.step);
-    /////////////////ddStep.dependOn(&ins_boot_bin.step);
     ddStep.dependOn(&os_bin.step);
     ddStep.dependOn(&kernelBin.step);
     ddStep.dependOn(&padding.step);
 
-    // b.default_step.dependOn(ddStep);
     b.getInstallStep().dependOn(ddStep);
 }
