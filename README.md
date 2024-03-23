@@ -15,7 +15,7 @@ This is fitting for my first attempt to create an x64 OS in Zig.
 
 # The Future
 I've stopped working on this project and I'm not planning to continue it. I'm focusing on another x64 OS project that primarily uses Zig and the Limine bootloader.
-So, look out for Bebok (in Silesian language, a creature from their demonology).
+So, look out for Bebok (in Silesian language, a creature from demonology).
 
 # How to run
 ```bash
